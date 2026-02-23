@@ -8,6 +8,7 @@ export const catalogoSchema = z.object({
   fileUrl: z.string().url().optional().nullable(),
   fileName: z.string().optional().nullable(),
   mimeType: z.string().optional().nullable(),
+  searchableText: z.string().optional().nullable(),
   createdAt: z.string().datetime(),
 });
 
@@ -24,6 +25,8 @@ export type CatalogosListResponse = z.infer<typeof catalogosListResponseSchema>;
 /** Query params for GET /catalogos. */
 export interface CatalogosListParams {
   sector?: string;
+  /** Full-text search over catalog extracted text (when backend supports it). */
+  q?: string;
   page?: number;
   limit?: number;
 }

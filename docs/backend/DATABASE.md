@@ -45,19 +45,21 @@ erDiagram
 
 ### catalogos
 
-| Column     | Type          | Notes                          |
-|------------|---------------|--------------------------------|
-| id         | UUID (PK)     |                                |
-| tenant_id  | UUID (FK)     | → tenants.id                   |
-| name       | VARCHAR(255)  | Display name                   |
-| sector     | VARCHAR(100)  | Optional sector                |
-| file_name  | VARCHAR(255)  | Original filename               |
-| file_path  | VARCHAR(512)  | Or storage key / URL           |
-| mime_type  | VARCHAR(100)  | e.g. application/pdf           |
-| created_at | TIMESTAMPTZ   |                                |
-| updated_at | TIMESTAMPTZ   |                                |
+| Column          | Type          | Notes                                                                 |
+|-----------------|---------------|-----------------------------------------------------------------------|
+| id              | UUID (PK)     |                                                                       |
+| tenant_id       | UUID (FK)     | → tenants.id                                                          |
+| name            | VARCHAR(255)  | Display name                                                          |
+| sector          | VARCHAR(100)  | Optional sector                                                       |
+| file_name       | VARCHAR(255)  | Original filename                                                     |
+| file_path       | VARCHAR(512)  | Or storage key / URL (e.g. S3 object URL)                             |
+| mime_type       | VARCHAR(100)  | e.g. application/pdf                                                  |
+| searchable_text | TEXT          | Text extracted from the PDF on upload; used for full-text search      |
+| created_at      | TIMESTAMPTZ   |                                                                       |
+| updated_at      | TIMESTAMPTZ   |                                                                       |
 
 - Index: `tenant_id`, `(tenant_id, sector)` if filtering by sector.
+- For full-text search over `searchable_text`, consider a GIN index on `to_tsvector('portuguese', searchable_text)` (or your configured language).
 
 ## Migration order
 
@@ -72,4 +74,4 @@ erDiagram
 
 ## File storage
 
-- Do not store file binary in the database. Store a path, key, or URL (e.g. S3 key or CDN URL) in `catalogos.file_path` or equivalent; serve downloads via signed URLs or a dedicated download endpoint.
+- Do not store file binary in the database. Store a path, key, or URL (e.g. S3 object URL) in `catalogos.file_path` or equivalent; serve downloads via signed URLs or a dedicated download endpoint. Populate `searchable_text` by extracting text from the PDF on upload (e.g. with a server-side library such as `pdf-parse`).

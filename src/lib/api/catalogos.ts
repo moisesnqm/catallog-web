@@ -40,7 +40,12 @@ export async function fetchCatalogos(
 ): Promise<CatalogosListResponse> {
   try {
     const { data } = await client.get<CatalogosListResponse>("/catalogos", {
-      params: { sector: params?.sector, page: params?.page, limit: params?.limit },
+      params: {
+        sector: params?.sector,
+        q: params?.q,
+        page: params?.page,
+        limit: params?.limit,
+      },
     });
     const parsed = catalogosListResponseSchema.safeParse(data);
     if (parsed.success) return parsed.data;

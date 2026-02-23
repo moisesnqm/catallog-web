@@ -20,7 +20,7 @@ export function useCatalogos(params?: CatalogosListParams) {
   );
 
   return useQuery({
-    queryKey: [...CATALOGOS_QUERY_KEY, params?.sector, params?.page, params?.limit],
+    queryKey: [...CATALOGOS_QUERY_KEY, params?.sector, params?.q, params?.page, params?.limit],
     queryFn: () => fetchCatalogos(client, params),
   });
 }
