@@ -11,6 +11,14 @@ const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const ACCEPTED_TYPE = "application/pdf";
 
+const SECTOR_OPTIONS = [
+  "financeiro",
+  "pcp",
+  "producao",
+  "vendas",
+  "projeto",
+] as const;
+
 type CatalogoUploadFormProps = {
   className?: string;
 };
@@ -106,11 +114,22 @@ export function CatalogoUploadForm({ className }: CatalogoUploadFormProps) {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-foreground">Setor (opcional)</label>
-            <Input
+            <select
               value={sector}
               onChange={(e) => setSector(e.target.value)}
-              placeholder="Ex.: Vendas"
-            />
+              className={cn(
+                "border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
+                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+                "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+              )}
+            >
+              <option value="">Selecione um setor</option>
+              {SECTOR_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
           </div>
           {errorMessage && (
             <p className="text-sm text-destructive">{errorMessage}</p>

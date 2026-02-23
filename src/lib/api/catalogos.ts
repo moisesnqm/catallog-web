@@ -5,7 +5,7 @@ import type {
   Catalogo,
   CatalogoUploadPayload,
 } from "@/types/catalogo";
-import { catalogosListResponseSchema } from "@/types/catalogo";
+import { catalogoSchema, catalogosListResponseSchema } from "@/types/catalogo";
 
 const MOCK_CATALOGOS: CatalogosListResponse = {
   items: [
@@ -56,6 +56,35 @@ export async function fetchCatalogos(
 }
 
 /**
+ * Fetches a single catalog by ID from the API.
+ * @throws when API returns 404 or other error (caller should handle)
+ */
+export async function fetchCatalogo(
+  client: AxiosInstance,
+  id: string
+): Promise<Catalogo> {
+  const { data } = await client.get<Catalogo>(`/catalogos/${id}`);
+  const parsed = catalogoSchema.safeParse(data);
+  if (parsed.success) return parsed.data;
+  return data;
+}
+
+/**
+ * Fetches the catalog file (PDF) as a Blob for secure in-app viewing.
+ * Prefer this over exposing fileUrl when backend supports GET /catalogos/:id/file.
+ * @throws when API returns 404 or other error
+ */
+export async function fetchCatalogoFile(
+  client: AxiosInstance,
+  id: string
+): Promise<Blob> {
+  const { data } = await client.get<Blob>(`/catalogos/${id}/file`, {
+    responseType: "blob",
+  });
+  return data;
+}
+
+/**
  * Uploads a catalog PDF. Fails with a descriptive error when API is unavailable.
  */
 export async function uploadCatalogo(
@@ -71,4 +100,15 @@ export async function uploadCatalogo(
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data;
+}
+
+/**
+ * Deletes a catalog by ID. Allowed only for admin and manager (backend enforces).
+ * @throws when API returns 403, 404 or other error
+ */
+export async function deleteCatalogo(
+  client: AxiosInstance,
+  id: string
+): Promise<void> {
+  await client.delete(`/catalogos/${id}`);
 }

@@ -154,7 +154,51 @@ The frontend uses this to know the current user's **role** and **tenantId** from
 **Response**
 
 - **Status:** `302 Redirect` to file URL, or `200 OK` with file stream.
+- **Errors:** `401`, `403`, `404**.
+
+---
+
+### 5. Delete catalog (admin, manager only)
+
+**Request**
+
+- **Method:** `DELETE`
+- **Path:** `/catalogos/:id`
+- **Headers:** `Authorization: Bearer <clerk_jwt>`
+
+**Response**
+
+- **Status:** `204 No Content` (or `200 OK` with no body).
+- **Errors:** `401`, `403`, `404 Not Found`.
+
+---
+
+### 6. Stream catalog file (for in-app viewer; required when S3 bucket is private)
+
+When the S3 bucket is **private**, the frontend cannot access the raw `fileUrl` directly (it gets 403). The frontend calls this endpoint with the Clerk JWT; the backend streams the file from S3 and returns it to the client.
+
+**Request**
+
+- **Method:** `GET`
+- **Path:** `/catalogos/:id/file`
+- **Headers:** `Authorization: Bearer <clerk_jwt>`
+
+**Backend behavior**
+
+- Validate the JWT and ensure the user has access to the catalog (e.g. same tenant).
+- Fetch the PDF from S3 using the stored object key (or by resolving from `fileUrl`). Use the AWS SDK (e.g. `GetObject`) with backend credentials.
+- Stream the response with:
+  - `Content-Type: application/pdf`
+  - `Content-Disposition: inline` (so the browser displays it, does not force download).
+
+**Response**
+
+- **Status:** `200 OK`
+- **Body:** Raw PDF bytes (binary stream).
+- **Headers:** `Content-Type: application/pdf`, `Content-Disposition: inline`.
 - **Errors:** `401`, `403`, `404`.
+
+**Alternative:** Instead of this endpoint, the backend can return a **presigned URL** in `fileUrl` (when returning a catalog in GET `/catalogos/:id` or in the list). The frontend then does a plain GET to that URL (no `Authorization` header); S3 accepts it because the signature is in the query string. If you use presigned URLs, this endpoint is optional.
 
 ---
 
