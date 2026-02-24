@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { Role } from "@/types/auth";
 
 /**
  * Current user profile returned by GET /me (role and tenant from backend).

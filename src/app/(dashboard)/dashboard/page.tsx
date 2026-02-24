@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 /**
@@ -20,12 +21,12 @@ export default function DashboardPage() {
             <p className="text-sm text-muted-foreground">
               Liste e visualize os catálogos disponíveis para seu setor.
             </p>
-            <a
+            <Link
               href="/catalogos"
               className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
             >
               Ver catálogos →
-            </a>
+            </Link>
           </CardContent>
         </Card>
         <Card>
@@ -36,12 +37,12 @@ export default function DashboardPage() {
             <p className="text-sm text-muted-foreground">
               Envie novos catálogos em PDF para a plataforma.
             </p>
-            <a
+            <Link
               href="/catalogos/upload"
               className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
             >
               Fazer upload →
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </div>
