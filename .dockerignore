@@ -1,0 +1,24 @@
+# Dependencies and build output
+node_modules
+.next
+out
+build
+
+# Git and IDE
+.git
+.gitignore
+.dockerignore
+.cursor
+*.md
+
+# Env (use Coolify env vars instead)
+.env*
+!.env.example
+
+# Misc
+.DS_Store
+*.pem
+coverage
+.vercel
+*.tsbuildinfo
+next-env.d.ts
