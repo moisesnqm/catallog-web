@@ -52,6 +52,10 @@ export function CatalogoUploadForm({ className }: CatalogoUploadFormProps) {
       return;
     }
     setFile(chosen);
+    const baseName = chosen.name.endsWith(".pdf")
+      ? chosen.name.slice(0, -4)
+      : chosen.name;
+    setName(baseName);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

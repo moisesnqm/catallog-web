@@ -24,10 +24,21 @@ export type CatalogosListResponse = z.infer<typeof catalogosListResponseSchema>;
 
 /** Query params for GET /catalogos. */
 export interface CatalogosListParams {
+  /** Filter by sector (e.g. vendas, financeiro). */
   sector?: string;
-  /** Full-text search over catalog extracted text (when backend supports it). */
+  /** Full-text search over extracted PDF text (Portuguese). */
   q?: string;
+  /** Partial, case-insensitive search by catalog name. */
+  name?: string;
+  /** Filter by MIME type (e.g. application/pdf). */
+  mimeType?: string;
+  /** Catalogs created from this date (ISO 8601). */
+  createdFrom?: string;
+  /** Catalogs created until this date (ISO 8601). */
+  createdTo?: string;
+  /** Page number (default: 1). */
   page?: number;
+  /** Items per page (default: 20, max: 100). */
   limit?: number;
 }
 

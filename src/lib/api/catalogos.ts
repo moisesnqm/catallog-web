@@ -39,13 +39,21 @@ export async function fetchCatalogos(
   params?: CatalogosListParams
 ): Promise<CatalogosListResponse> {
   try {
+    const query: Record<string, string | number | undefined> = {
+      sector: params?.sector,
+      q: params?.q,
+      name: params?.name,
+      mimeType: params?.mimeType,
+      createdFrom: params?.createdFrom,
+      createdTo: params?.createdTo,
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 20,
+    };
+    const cleanParams = Object.fromEntries(
+      Object.entries(query).filter(([, v]) => v !== undefined && v !== "")
+    ) as Record<string, string | number>;
     const { data } = await client.get<CatalogosListResponse>("/catalogos", {
-      params: {
-        sector: params?.sector,
-        q: params?.q,
-        page: params?.page,
-        limit: params?.limit,
-      },
+      params: cleanParams,
     });
     const parsed = catalogosListResponseSchema.safeParse(data);
     if (parsed.success) return parsed.data;

@@ -11,8 +11,8 @@ export default function CatalogosPage() {
       <div className="p-6">
         <h1 className="text-3xl font-semibold text-foreground">Catálogos</h1>
         <p className="mt-2 text-muted-foreground">
-          Listagem de catálogos disponíveis. Use o filtro por setor quando a API
-          estiver disponível.
+          Listagem de catálogos disponíveis. Use os filtros e a paginação para
+          refinar a busca.
         </p>
         <CatalogosList className="mt-6" />
       </div>
