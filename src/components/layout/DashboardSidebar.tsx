@@ -3,17 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, FolderOpen, Upload } from "lucide-react";
+import { LayoutDashboard, FolderOpen, Upload, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUserProfile } from "@/hooks/useCurrentUserProfile";
 import { getRoleLabel } from "@/lib/role-labels";
+import { CAN_MANAGE_AREAS } from "@/types/auth";
 import type { Role } from "@/types/auth";
 
-const navItems = [
+const baseNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/catalogos", label: "Catálogos", icon: FolderOpen },
   { href: "/catalogos/upload", label: "Upload", icon: Upload },
 ];
+
+const areasNavItem = {
+  href: "/areas",
+  label: "Áreas",
+  icon: LayoutGrid,
+};
 
 /**
  * Sidebar navigation for the dashboard area.
@@ -23,6 +30,12 @@ export function DashboardSidebar() {
   const { data: profile, isLoading: profileLoading } = useCurrentUserProfile();
   const roleLabel =
     profile?.role != null ? getRoleLabel(profile.role as Role) : null;
+  const canManageAreas =
+    profile?.role != null &&
+    CAN_MANAGE_AREAS.includes(profile.role as Role);
+  const navItems = canManageAreas
+    ? [...baseNavItems, areasNavItem]
+    : baseNavItems;
 
   return (
     <aside className="flex w-56 flex-col border-r border-sidebar-border bg-sidebar">

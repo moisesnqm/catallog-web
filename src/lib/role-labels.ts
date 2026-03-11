@@ -1,6 +1,7 @@
 import type { Role } from "@/types/auth";
 
 const ROLE_LABELS: Record<Role, string> = {
+  superadmin: "Super Admin",
   admin: "Admin",
   manager: "Gerente",
   viewer: "Visualizador",

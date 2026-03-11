@@ -4,7 +4,7 @@ import { z } from "zod";
  * Current user profile returned by GET /me (role and tenant from backend).
  */
 export const currentUserProfileSchema = z.object({
-  role: z.enum(["admin", "manager", "viewer"]),
+  role: z.enum(["superadmin", "admin", "manager", "viewer"]),
   tenantId: z.string().uuid(),
   tenantName: z.string().optional(),
   sector: z.string().optional(),

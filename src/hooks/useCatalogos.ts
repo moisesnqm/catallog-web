@@ -23,6 +23,7 @@ export function useCatalogos(params?: CatalogosListParams) {
     queryKey: [
       ...CATALOGOS_QUERY_KEY,
       params?.sector,
+      params?.areaId,
       params?.q,
       params?.name,
       params?.mimeType,

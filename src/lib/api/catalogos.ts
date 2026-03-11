@@ -4,6 +4,7 @@ import type {
   CatalogosListParams,
   Catalogo,
   CatalogoUploadPayload,
+  UpdateCatalogoPayload,
 } from "@/types/catalogo";
 import { catalogoSchema, catalogosListResponseSchema } from "@/types/catalogo";
 
@@ -13,6 +14,8 @@ const MOCK_CATALOGOS: CatalogosListResponse = {
       id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       name: "Catálogo Produtos 2024",
       sector: "Vendas",
+      areaId: null,
+      area: null,
       fileUrl: null,
       fileName: "catalogo-2024.pdf",
       mimeType: "application/pdf",
@@ -22,6 +25,8 @@ const MOCK_CATALOGOS: CatalogosListResponse = {
       id: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
       name: "Manual Técnico",
       sector: "Operações",
+      areaId: null,
+      area: null,
       fileUrl: null,
       fileName: "manual-tecnico.pdf",
       mimeType: "application/pdf",
@@ -41,6 +46,7 @@ export async function fetchCatalogos(
   try {
     const query: Record<string, string | number | undefined> = {
       sector: params?.sector,
+      areaId: params?.areaId,
       q: params?.q,
       name: params?.name,
       mimeType: params?.mimeType,
@@ -103,6 +109,7 @@ export async function uploadCatalogo(
   formData.append("file", payload.file);
   if (payload.name) formData.append("name", payload.name);
   if (payload.sector) formData.append("sector", payload.sector);
+  if (payload.areaId) formData.append("areaId", payload.areaId);
 
   const { data } = await client.post<Catalogo>("/catalogos/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -111,7 +118,24 @@ export async function uploadCatalogo(
 }
 
 /**
- * Deletes a catalog by ID. Allowed only for admin and manager (backend enforces).
+ * Updates catalog metadata (name, sector, areaId). Admin or manager only (backend).
+ * 404 if catalog does not exist or belongs to another tenant.
+ * 422 if validation fails or areaId not found / does not belong to tenant.
+ * @throws when API returns 403, 404, 422 or other error
+ */
+export async function updateCatalogo(
+  client: AxiosInstance,
+  id: string,
+  payload: UpdateCatalogoPayload
+): Promise<Catalogo> {
+  const { data } = await client.patch<Catalogo>(`/catalogos/${id}`, payload);
+  const parsed = catalogoSchema.safeParse(data);
+  if (parsed.success) return parsed.data;
+  return data;
+}
+
+/**
+ * Deletes a catalog by ID. Allowed only for admin, manager, superadmin (backend enforces).
  * @throws when API returns 403, 404 or other error
  */
 export async function deleteCatalogo(

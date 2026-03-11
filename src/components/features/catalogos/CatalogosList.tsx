@@ -3,9 +3,10 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useCatalogos } from "@/hooks/useCatalogos";
+import { useAreas } from "@/hooks/useAreas";
 import { useDeleteCatalogo } from "@/hooks/useDeleteCatalogo";
 import { useCurrentUserProfile } from "@/hooks/useCurrentUserProfile";
-import { CAN_DELETE_CATALOGOS } from "@/types/auth";
+import { CAN_DELETE_CATALOGOS, CAN_EDIT_CATALOGOS } from "@/types/auth";
 import type { Role } from "@/types/auth";
 import type { CatalogosListParams } from "@/types/catalogo";
 import {
@@ -16,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -29,12 +31,13 @@ type CatalogosListProps = {
 
 /**
  * Renders the catalog list with search, filters, and pagination.
- * Uses the GET /catalogos API with query params: sector, q, name, mimeType, createdFrom, createdTo, page, limit.
+ * Uses the GET /catalogos API with query params: sector, areaId, q, name, mimeType, createdFrom, createdTo, page, limit.
  */
 export function CatalogosList({ className }: CatalogosListProps) {
   const [name, setName] = useState("");
   const [q, setQ] = useState("");
   const [sector, setSector] = useState("");
+  const [areaId, setAreaId] = useState("");
   const [mimeType, setMimeType] = useState("");
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
@@ -49,28 +52,35 @@ export function CatalogosList({ className }: CatalogosListProps) {
   };
 
   const { data, isLoading, isError, error } = useCatalogos(params);
+  const { data: areas = [] } = useAreas({ sortBy: "display_order", sortOrder: "asc" });
   const { data: profile } = useCurrentUserProfile();
   const deleteCatalogo = useDeleteCatalogo();
   const canDelete =
     profile?.role != null &&
     CAN_DELETE_CATALOGOS.includes(profile.role as Role);
+  const canEdit =
+    profile?.role != null &&
+    CAN_EDIT_CATALOGOS.includes(profile.role as Role);
+  const showActions = canDelete || canEdit;
 
   const handleApplyFilters = useCallback(() => {
     setApplied({
       ...(name.trim() && { name: name.trim() }),
       ...(q.trim() && { q: q.trim() }),
       ...(sector.trim() && { sector: sector.trim() }),
+      ...(areaId.trim() && { areaId: areaId.trim() }),
       ...(mimeType.trim() && { mimeType: mimeType.trim() }),
       ...(createdFrom && { createdFrom }),
       ...(createdTo && { createdTo }),
     });
     setPage(1);
-  }, [name, q, sector, mimeType, createdFrom, createdTo]);
+  }, [name, q, sector, areaId, mimeType, createdFrom, createdTo]);
 
   const handleClearFilters = useCallback(() => {
     setName("");
     setQ("");
     setSector("");
+    setAreaId("");
     setMimeType("");
     setCreatedFrom("");
     setCreatedTo("");
@@ -128,6 +138,27 @@ export function CatalogosList({ className }: CatalogosListProps) {
               onChange={(e) => setSector(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
             />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="filter-area" className="text-muted-foreground text-xs font-medium">
+              Área
+            </label>
+            <select
+              id="filter-area"
+              className={cn(
+                "border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
+                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              )}
+              value={areaId}
+              onChange={(e) => setAreaId(e.target.value)}
+            >
+              <option value="">Todas as áreas</option>
+              {areas.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1.5">
             <label htmlFor="filter-mime" className="text-muted-foreground text-xs font-medium">
@@ -191,15 +222,16 @@ export function CatalogosList({ className }: CatalogosListProps) {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Setor</TableHead>
+                  <TableHead>Área</TableHead>
                   <TableHead>Arquivo</TableHead>
                   <TableHead>Data</TableHead>
-                  {canDelete && <TableHead className="w-[100px]">Ações</TableHead>}
+                  {showActions && <TableHead className="w-[90px]">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={canDelete ? 5 : 4} className="text-center text-muted-foreground">
+                    <TableCell colSpan={showActions ? 6 : 5} className="text-center text-muted-foreground">
                       Nenhum catálogo encontrado.
                     </TableCell>
                   </TableRow>
@@ -208,12 +240,18 @@ export function CatalogosList({ className }: CatalogosListProps) {
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.name}</TableCell>
                       <TableCell>{c.sector ?? "—"}</TableCell>
+                      <TableCell>{c.area?.name ?? "—"}</TableCell>
                       <TableCell>
-                        <Link
-                          href={`/catalogos/${c.id}`}
-                          className="text-primary hover:underline"
-                        >
-                          Visualizar
+                        <Link href={`/catalogos/${c.id}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            title="Visualizar"
+                            aria-label="Visualizar"
+                          >
+                            <Eye className="size-4" />
+                          </Button>
                         </Link>
                         {c.fileName ? (
                           <span className="ml-2 text-muted-foreground text-sm">
@@ -224,17 +262,36 @@ export function CatalogosList({ className }: CatalogosListProps) {
                       <TableCell className="text-muted-foreground">
                         {new Date(c.createdAt).toLocaleDateString("pt-BR")}
                       </TableCell>
-                      {canDelete && (
+                      {showActions && (
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => handleDelete(c.id, c.name)}
-                            disabled={deleteCatalogo.isPending}
-                          >
-                            Excluir
-                          </Button>
+                          <div className="flex flex-wrap gap-1">
+                            {canEdit && (
+                              <Link href={`/catalogos/${c.id}?edit=1`}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  title="Editar"
+                                  aria-label="Editar"
+                                >
+                                  <Pencil className="size-4" />
+                                </Button>
+                              </Link>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => handleDelete(c.id, c.name)}
+                                disabled={deleteCatalogo.isPending}
+                                title="Excluir"
+                                aria-label="Excluir"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>

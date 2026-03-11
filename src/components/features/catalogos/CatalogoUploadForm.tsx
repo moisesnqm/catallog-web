@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useUploadCatalogo } from "@/hooks/useUploadCatalogo";
+import { useAreas } from "@/hooks/useAreas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -29,10 +30,12 @@ type CatalogoUploadFormProps = {
 export function CatalogoUploadForm({ className }: CatalogoUploadFormProps) {
   const [name, setName] = useState("");
   const [sector, setSector] = useState("");
+  const [areaId, setAreaId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const upload = useUploadCatalogo();
+  const { data: areas = [] } = useAreas({ sortBy: "display_order", sortOrder: "asc" });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValidationError(null);
@@ -66,16 +69,26 @@ export function CatalogoUploadForm({ className }: CatalogoUploadFormProps) {
       return;
     }
     upload.mutate(
-      { file, name: name.trim() || undefined, sector: sector.trim() || undefined },
+      {
+        file,
+        name: name.trim() || undefined,
+        sector: sector.trim() || undefined,
+        areaId: areaId.trim() || undefined,
+      },
       {
         onError: (err) => {
-          const message = err?.message ?? "";
+          const res = err as { response?: { status?: number; data?: { message?: string | string[] } } };
+          const status = res?.response?.status;
+          const rawMessage = res?.response?.data?.message ?? (err?.message ?? "");
+          const message = Array.isArray(rawMessage) ? rawMessage.join(" ") : String(rawMessage);
           const isNetworkOrUnavailable =
-            message.includes("Network Error") ||
-            message.includes("ECONNREFUSED") ||
-            (err as { response?: { status?: number } })?.response?.status === 503;
+            (err?.message ?? "").includes("Network Error") ||
+            (err?.message ?? "").includes("ECONNREFUSED") ||
+            status === 503;
           if (isNetworkOrUnavailable) {
             setValidationError("API indisponível. Tente novamente quando o backend estiver no ar.");
+          } else if (status === 422 && message.toLowerCase().includes("area")) {
+            setValidationError("Área não encontrada ou não pertence ao tenant.");
           }
         },
       }
@@ -131,6 +144,25 @@ export function CatalogoUploadForm({ className }: CatalogoUploadFormProps) {
               {SECTOR_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-foreground">Área (opcional)</label>
+            <select
+              value={areaId}
+              onChange={(e) => setAreaId(e.target.value)}
+              className={cn(
+                "border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
+                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+                "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+              )}
+            >
+              <option value="">Nenhuma área</option>
+              {areas.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.name}
                 </option>
               ))}
             </select>
