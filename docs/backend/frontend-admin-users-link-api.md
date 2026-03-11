@@ -47,11 +47,15 @@ interface TenantUserItem {
   id: string;              // UUID do registro na aplicação
   clerk_user_id: string;   // ID do usuário no Clerk (ex.: user_2abc...)
   tenant_id: string;       // UUID do tenant
+  email?: string;          // E-mail do usuário no Clerk (recomendado: incluir na resposta para exibição no frontend)
   role: string;            // 'admin' | 'manager' | 'viewer'
   sector_access: string;   // 'all' | 'none' | 'financeiro' | 'pcp' | 'producao' | 'vendas' | 'projeto'
   created_at: string;     // ISO 8601
 }
 ```
+
+**Alteração solicitada ao backend (coluna E-mail na listagem):**  
+Para exibir o e-mail do usuário na tabela "Usuários vinculados ao tenant", o frontend espera o campo opcional `email` em cada item do array retornado por `GET /admin/users`. O backend pode obter o e-mail do usuário na Clerk (ex.: ao listar, enriquecer com Clerk Backend API pelo `clerk_user_id`, ou persistir o e-mail no registro local no momento do `POST /admin/users/link` e devolver esse valor). Enquanto `email` não for enviado, o frontend exibe "—" na coluna E-mail.
 
 **Erros**
 
@@ -181,6 +185,7 @@ interface TenantUserItem {
   id: string;
   clerk_user_id: string;
   tenant_id: string;
+  email?: string;
   role: Role;
   sector_access: SectorAccess;
   created_at: string;

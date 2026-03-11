@@ -17,11 +17,14 @@ export type SectorAccess =
 
 /**
  * User linked to the current tenant (GET /admin/users).
+ * `email` is optional until the backend includes it in the response.
  */
 export interface TenantUserItem {
   id: string;
   clerk_user_id: string;
   tenant_id: string;
+  /** E-mail do usuário no Clerk; preenchido pelo backend quando disponível. */
+  email?: string;
   role: TenantUserRole;
   sector_access: SectorAccess;
   created_at: string;

@@ -334,6 +334,7 @@ export function TenantUsersList({ className }: TenantUsersListProps) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>E-mail</TableHead>
                 <TableHead>Identificador</TableHead>
                 <TableHead>Função</TableHead>
                 <TableHead>Setor</TableHead>
@@ -344,6 +345,9 @@ export function TenantUsersList({ className }: TenantUsersListProps) {
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
+                  <TableCell className="font-medium">
+                    {user.email ?? "—"}
+                  </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {user.clerk_user_id.length > 20
                       ? `…${user.clerk_user_id.slice(-12)}`
