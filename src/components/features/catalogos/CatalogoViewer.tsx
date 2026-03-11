@@ -21,7 +21,8 @@ type CatalogoViewerProps = {
 
 /**
  * Renders the catalog PDF in-app with restrictions: no save button, print disabled,
- * context menu disabled, and selection disabled to discourage copying/screenshots.
+ * context menu disabled, selection disabled, and Print Screen / screenshot shortcuts
+ * intercepted (best-effort; cannot prevent OS-level capture).
  */
 export function CatalogoViewer({ catalog }: CatalogoViewerProps) {
   const { getToken } = useAuth();
@@ -110,6 +111,25 @@ export function CatalogoViewer({ catalog }: CatalogoViewerProps) {
       window.removeEventListener("beforeprint", handleBeforePrint);
       window.removeEventListener("afterprint", handleAfterPrint);
     };
+  }, []);
+
+  /** Best-effort: intercept Print Screen (and common macOS screenshot shortcuts) to discourage screenshots. Cannot prevent OS-level capture. */
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isPrintScreen =
+        event.key === "PrintScreen" || event.code === "PrintScreen";
+      const isMacScreenshot =
+        event.metaKey &&
+        event.shiftKey &&
+        (event.key === "3" || event.key === "4" || event.key === "5");
+      if (isPrintScreen || isMacScreenshot) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () =>
+      document.removeEventListener("keydown", handleKeyDown, { capture: true });
   }, []);
 
   if (loadError) {
