@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, FolderOpen, Upload, LayoutGrid } from "lucide-react";
+import {
+  LayoutDashboard,
+  FolderOpen,
+  Upload,
+  LayoutGrid,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUserProfile } from "@/hooks/useCurrentUserProfile";
 import { getRoleLabel } from "@/lib/role-labels";
-import { CAN_MANAGE_AREAS } from "@/types/auth";
+import { CAN_MANAGE_AREAS, CAN_MANAGE_TENANT_USERS } from "@/types/auth";
 import type { Role } from "@/types/auth";
 
 const baseNavItems = [
@@ -22,6 +28,12 @@ const areasNavItem = {
   icon: LayoutGrid,
 };
 
+const adminUsersNavItem = {
+  href: "/admin/users",
+  label: "Usuários",
+  icon: Users,
+};
+
 /**
  * Sidebar navigation for the dashboard area.
  */
@@ -33,9 +45,14 @@ export function DashboardSidebar() {
   const canManageAreas =
     profile?.role != null &&
     CAN_MANAGE_AREAS.includes(profile.role as Role);
-  const navItems = canManageAreas
-    ? [...baseNavItems, areasNavItem]
-    : baseNavItems;
+  const canManageTenantUsers =
+    profile?.role != null &&
+    CAN_MANAGE_TENANT_USERS.includes(profile.role as Role);
+  const navItems = [
+    ...baseNavItems,
+    ...(canManageAreas ? [areasNavItem] : []),
+    ...(canManageTenantUsers ? [adminUsersNavItem] : []),
+  ];
 
   return (
     <aside className="flex w-56 flex-col border-r border-sidebar-border bg-sidebar">

@@ -51,3 +51,12 @@ export const CAN_MANAGE_AREAS: Role[] = [
   ROLES.ADMIN,
   ROLES.MANAGER,
 ];
+
+/**
+ * Roles that can manage tenant users (link/unlink, list, update role/sector).
+ * Admin-only feature.
+ */
+export const CAN_MANAGE_TENANT_USERS: Role[] = [
+  ROLES.SUPERADMIN,
+  ROLES.ADMIN,
+];
